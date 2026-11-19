@@ -237,9 +237,11 @@ cp .env.example .env              # then fill in the values
 
 ```dotenv
 BASE_URL=https://opensource-demo.orangehrmlive.com
-ADMIN_USERNAME=Admin
-ADMIN_PASSWORD=admin123
+ADMIN_USERNAME=<admin username>
+ADMIN_PASSWORD=<admin password>
 ```
+
+For the public demo, use the Admin credentials shown on its login page.
 
 If a variable is missing, the run stops immediately with a clear error ([src/utils/env.ts](src/utils/env.ts)).
 
@@ -403,6 +405,7 @@ This works through [src/utils/apiLogger.ts](src/utils/apiLogger.ts), which wraps
 │   └── utils/
 │       ├── env.ts              # validated access to .env
 │       ├── dataGenerator.ts    # unique usernames, valid passwords, employee names (faker)
+│       ├── loginCases.ts       # fills the credential placeholders in login.json from .env
 │       ├── testFiles.ts        # unique test files (txt/png/pdf, or an exact size) in the test's output folder
 │       ├── vacancySearch.ts    # turns a search-matrix row into UI filters, API params and expected rows
 │       ├── assertions.ts       # expectNoServerInternals(): response body leak check
@@ -487,7 +490,7 @@ Setup goes through the API because it is fast and reliable. The behaviour under 
 ## Assumptions and limitations
 
 - **Shared public environment.** Data on the demo site is reset periodically and changed by other users. Tests never depend on pre-existing records, except the built-in `Admin` account. Even so, outages or slow responses on the demo server can cause occasional failures, which is why retries are enabled.
-- **Credentials.** The default credentials are public demo credentials. They are still kept out of the source and read from `.env`.
+- **Credentials.** The demo's Admin credentials are public (shown on its login page). They are still kept out of the repository: tests read them from `.env` locally and from GitHub Secrets on CI.
 - **The user list has no stable ids.** Table rows are found by the username cell. Columns are read by position (`Username, User Role, Employee Name, Status`), which is documented in `SystemUsersPage.getRowData()`.
 - **Undocumented API behaviour.** `PUT /admin/users/{id}` returns `422` unless `changePassword: false` **and** `password: ""` are both sent. The API client follows this behaviour.
 - **Attachments.** Downloading a missing attachment returns `400`, not `404`. No code is specified, so the tests accept any `4xx`. The demo shows *Date Added* in an unusual `yyyy-dd-mm` format, so the date column is not asserted. Attachments created by the data-driven API tests are not deleted one by one: they belong to the test's own employee, which is deleted in teardown.

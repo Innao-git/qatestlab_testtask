@@ -1,6 +1,6 @@
 import { test, expect } from '../../src/fixtures';
 import { env } from '../../src/utils/env';
-import loginCases from '../../test-data/login.json';
+import { loginCases } from '../../src/utils/loginCases';
 
 // Login tests must start from a clean, unauthenticated browser.
 test.use({ storageState: { cookies: [], origins: [] } });

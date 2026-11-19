@@ -1,9 +1,9 @@
 [
-  { "case": "wrong password", "username": "Admin", "password": "wrongPass123", "ui": true },
-  { "case": "non-existent username", "username": "no_such_user_qa", "password": "admin123" },
-  { "case": "password in wrong case (password is case-sensitive)", "username": "Admin", "password": "ADMIN123" },
-  { "case": "password with trailing space (password is not trimmed)", "username": "Admin", "password": "admin123 " },
-  { "case": "empty username", "username": "", "password": "admin123" },
-  { "case": "empty password", "username": "Admin", "password": "" },
+  { "case": "wrong password", "username": "{username}", "password": "wrongPass123", "ui": true },
+  { "case": "non-existent username", "username": "no_such_user_qa", "password": "{password}" },
+  { "case": "password in wrong case (password is case-sensitive)", "username": "{username}", "password": "{password:upper}" },
+  { "case": "password with trailing space (password is not trimmed)", "username": "{username}", "password": "{password} " },
+  { "case": "empty username", "username": "", "password": "{password}" },
+  { "case": "empty password", "username": "{username}", "password": "" },
   { "case": "SQL injection string", "username": "' OR '1'='1", "password": "' OR '1'='1" }
 ]

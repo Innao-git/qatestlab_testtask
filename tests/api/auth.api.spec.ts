@@ -4,7 +4,7 @@ import { SESSION_COOKIE } from '../../src/api/AuthApi';
 import { withApiLogging } from '../../src/utils/apiLogger';
 import { expectNoServerInternals } from '../../src/utils/assertions';
 import { env } from '../../src/utils/env';
-import loginCases from '../../test-data/login.json';
+import { loginCases } from '../../src/utils/loginCases';
 
 // Auth tests need a clean cookie jar.
 const NO_SESSION = { cookies: [], origins: [] };
