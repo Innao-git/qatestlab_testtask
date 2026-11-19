@@ -1,0 +1,97 @@
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Which tests to run
+        type: choice
+        options: [all, api, e2e]
+        default: all
+      grep:
+        description: Optional tag or title filter passed to --grep (e.g. @smoke, @users)
+        type: string
+        required: false
+
+permissions:
+  contents: read
+
+# A newer push to the same branch cancels the run that is still in progress.
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typecheck:
+    name: Type check
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
+  test:
+    name: ${{ matrix.project == 'api' && 'API' || 'E2E (Chromium)' }} tests
+    needs: typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      # One suite failing does not cancel the other: both results are always visible.
+      fail-fast: false
+      matrix:
+        # push / pull_request: no inputs, so both suites run. Manual run: the chosen suite only.
+        project: ${{ fromJSON(inputs.suite == 'api' && '["api"]' || inputs.suite == 'e2e' && '["e2e"]' || '["api","e2e"]') }}
+    env:
+      # BASE_URL is not secret: a repository variable can override it, otherwise the public demo is used.
+      BASE_URL: ${{ vars.BASE_URL || 'https://opensource-demo.orangehrmlive.com' }}
+      ADMIN_USERNAME: ${{ secrets.ADMIN_USERNAME }}
+      ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+      # API_LOG_SHOW_SESSION is deliberately NOT set: the uploaded report would contain a live session.
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # API tests use only Playwright's HTTP client, so they need no browser.
+      - name: Install Chromium
+        if: ${{ matrix.project == 'e2e' }}
+        run: npx playwright install --with-deps chromium
+
+      - name: Run ${{ matrix.project }} tests
+        env:
+          PROJECT: ${{ matrix.project }}
+          GREP: ${{ inputs.grep }}
+        # The e2e project pulls in its `setup` dependency (UI login) automatically.
+        run: npx playwright test --project="$PROJECT" ${GREP:+--grep "$GREP"}
+
+      - name: Upload HTML report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload traces, screenshots and videos of failed tests
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.project }}
+          path: test-results/
+          retention-days: 14

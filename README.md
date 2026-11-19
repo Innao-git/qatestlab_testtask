@@ -23,6 +23,7 @@ The task recommended Cypress but allowed any JavaScript/TypeScript tool. I chose
 - [Prerequisites](#prerequisites)
 - [Setup](#setup)
 - [Running the tests](#running-the-tests)
+- [Continuous integration](#continuous-integration)
 - [Reports and debugging](#reports-and-debugging)
 - [Project structure](#project-structure)
 - [Approach and design decisions](#approach-and-design-decisions)
@@ -224,7 +225,7 @@ npx playwright test -g "KNOWN ISSUE"     # run only the known-issue tests
 
 ```bash
 git clone <repo-url>
-cd qatestlab
+cd qatestlab_testtask
 
 npm install
 npx playwright install chromium   # add --with-deps on Linux CI
@@ -290,6 +291,31 @@ npx playwright test --project=e2e --grep @smoke     # smoke, E2E only
 
 There are deliberately no `@api` / `@e2e` tags. The test level is defined by the folder and the Playwright project (`--project=api|e2e`), which also carry level-specific settings. A tag would only duplicate that information and could drift out of sync with it.
 
+## Continuous integration
+
+[.github/workflows/tests.yml](.github/workflows/tests.yml) runs on GitHub Actions. A quick **type check** job runs first. Then the **API** and **E2E (Chromium)** suites run as two separate, parallel jobs, so each has its own status check, its own report and can be re-run on its own. One suite failing does not cancel the other.
+
+- **On every push and pull request to `main`,** both suites run.
+- **Manually,** from **Actions → Tests → Run workflow**, you choose:
+  - `suite`: `all`, `api` or `e2e`;
+  - `grep` (optional): a tag or title filter, for example `@smoke` or `@users`.
+
+Each suite uploads its HTML report as `playwright-report-api` / `playwright-report-e2e`. When a test fails, its traces, screenshots and videos are uploaded as `test-results-api` / `test-results-e2e`. On CI, `CI=true` is set, so a failed test is retried twice and `test.only` fails the build.
+
+**One-time setup.** Credentials are not stored in the repository. Add them in **Settings → Secrets and variables → Actions**:
+
+| Name             | Kind     | Value                                                         |
+|------------------|----------|---------------------------------------------------------------|
+| `ADMIN_USERNAME` | Secret   | Admin username                                                |
+| `ADMIN_PASSWORD` | Secret   | Admin password                                                |
+| `BASE_URL`       | Variable | Optional. Defaults to `https://opensource-demo.orangehrmlive.com` |
+
+Without the secrets, the run stops at once with *"Missing required env variable"*. GitHub does not pass secrets to pull requests from forks, so those runs stop the same way.
+
+`API_LOG_SHOW_SESSION` is deliberately not set on CI: anyone who can download the report artifact would see a live session.
+
+No scheduled run is configured. The demo is a shared public server that is sometimes slow or down, so a nightly run would mostly report the demo's outages and add load to someone else's server.
+
 ## Reports and debugging
 
 - **HTML report** is written to `playwright-report/`. Open it with `npm run report`. Tests that use `test.step` show each step separately.
@@ -339,6 +365,7 @@ This works through [src/utils/apiLogger.ts](src/utils/apiLogger.ts), which wraps
 
 ```
 .
+├── .github/workflows/tests.yml # CI: type check, then API and E2E as parallel jobs; manual run picks the suite
 ├── playwright.config.ts        # projects: api (standalone), setup → e2e; reporters, retries, artifacts
 ├── .env.example                # template for environment variables
 ├── src/
@@ -472,7 +499,7 @@ Setup goes through the API because it is fast and reliable. The behaviour under 
 
 ## Suggestions for improvement
 
-- **CI pipeline** (GitHub Actions): run on push and PR, upload the HTML report and traces as artifacts, and run nightly to catch changes on the demo site.
+- **Scheduled CI runs** against a dedicated, stable environment (not the shared demo), to catch regressions between commits. See [Continuous integration](#continuous-integration) for what already runs on push and PR.
 - **Allure report**, for history and trends across runs.
 - **JSON-schema validation** of API responses (for example with `ajv`), on top of the field-level assertions.
 - **Cross-browser projects** (Firefox, WebKit), run on a schedule rather than on every commit.
