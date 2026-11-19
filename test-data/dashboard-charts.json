@@ -1,0 +1,4 @@
+[
+  { "title": "Employee Distribution by Sub Unit", "kind": "subunit", "itemKey": "subunit" },
+  { "title": "Employee Distribution by Location", "kind": "locations", "itemKey": "location" }
+]

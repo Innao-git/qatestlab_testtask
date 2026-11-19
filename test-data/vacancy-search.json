@@ -1,0 +1,8 @@
+[
+  { "case": "hiring manager only", "filters": {}, "expected": ["V1", "V2", "V3"] },
+  { "case": "status Active", "filters": { "status": "Active" }, "expected": ["V1", "V3"] },
+  { "case": "job title", "filters": { "jobTitle": "A" }, "expected": ["V1", "V2"], "ui": true },
+  { "case": "job title and status combined", "filters": { "jobTitle": "A", "status": "Active" }, "expected": ["V1"], "ui": true, "smoke": true },
+  { "case": "vacancy name", "filters": { "vacancy": "V3" }, "expected": ["V3"] },
+  { "case": "no match", "filters": { "jobTitle": "B", "status": "Closed" }, "expected": [], "ui": true }
+]

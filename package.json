@@ -1,0 +1,27 @@
+{
+  "name": "orangehrm-playwright-tests",
+  "version": "1.0.0",
+  "description": "Playwright + TypeScript API & E2E tests for OrangeHRM demo",
+  "scripts": {
+    "test": "playwright test",
+    "test:e2e": "playwright test --project=e2e",
+    "test:api": "playwright test --project=api",
+    "test:headed": "playwright test --project=e2e --headed",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit",
+    "test:smoke": "playwright test --grep @smoke",
+    "test:smoke:e2e": "playwright test --project=e2e --grep @smoke",
+    "test:smoke:api": "playwright test --project=api --grep @smoke"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@faker-js/faker": "^10.6.0",
+    "@playwright/test": "^1.65.1",
+    "@types/node": "^26.6.6",
+    "dotenv": "^18.0.10",
+    "typescript": "^7.0.2"
+  }
+}

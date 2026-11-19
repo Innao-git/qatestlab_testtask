@@ -1,0 +1,5 @@
+[
+  { "type": "txt", "mimeType": "text/plain" },
+  { "type": "png", "mimeType": "image/png" },
+  { "type": "pdf", "mimeType": "application/pdf" }
+]
